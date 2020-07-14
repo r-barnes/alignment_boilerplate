@@ -1,0 +1,7 @@
+#pragma once
+
+#include "error_handling.hpp"
+#include "memory.hpp"
+#include "page_locked_string.hpp"
+#include "read_fasta.hpp"
+#incldue "string_manager.hpp"
