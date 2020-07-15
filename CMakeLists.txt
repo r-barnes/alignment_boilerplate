@@ -52,15 +52,15 @@ set_target_properties(rhgt PROPERTIES
 
 # file(COPY test_prog/run_tests.sh DESTINATION ${CMAKE_BINARY_DIR} FILE_PERMISSIONS OWNER_READ OWNER_WRITE OWNER_EXECUTE)
 
-# execute_process(
-#   COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/test_prog/query_batch.fasta.tar.gz
-#   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/
-# )
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/test_data/query_batch.fasta.tar.gz
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/
+)
 
-# execute_process(
-#   COMMAND ${CMAKE_COMMAND} -E tar xzf ${PROJECT_SOURCE_DIR}/test_prog/target_batch.fasta.tar.gz
-#   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/
-# )
+execute_process(
+  COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/test_data/target_batch.fasta.tar.gz
+  WORKING_DIRECTORY ${CMAKE_BINARY_DIR}/
+)
 
 
 
