@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <string>
 
-namespace rhgt {
+namespace rhgb {
 
 class Timer {
  public:

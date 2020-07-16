@@ -1,7 +1,7 @@
-#include <rhgt/error_handling.hpp>
-#include <rhgt/stream_manager.hpp>
+#include <rhgb/error_handling.hpp>
+#include <rhgb/stream_manager.hpp>
 
-namespace rhgt {
+namespace rhgb {
 
 RangeVector generate_chunks(const size_t N, const size_t chunks){
   const int step = std::round(N/(double)chunks);

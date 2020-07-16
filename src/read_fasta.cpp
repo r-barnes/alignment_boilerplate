@@ -1,4 +1,4 @@
-#include <rhgt/read_fasta.hpp>
+#include <rhgb/read_fasta.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-namespace rhgt {
+namespace rhgb {
 
 /*
   Reads FASTA files and fills the corresponding buffers.

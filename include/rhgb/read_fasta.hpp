@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-namespace rhgt {
+namespace rhgb {
 
 struct FastaInput {
   std::vector<std::string> sequences;

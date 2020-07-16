@@ -1,11 +1,11 @@
-#include <rhgt/timer.hpp>
+#include <rhgb/timer.hpp>
 
 #include "doctest.h"
 
 #include <chrono>
 #include <thread>
 
-using namespace rhgt;
+using namespace rhgb;
 
 TEST_CASE("Timer Start Stop"){
   Timer timer;

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.13)
 
-project(rhgt LANGUAGES CUDA CXX)
+project(rhgb LANGUAGES CUDA CXX)
 
 find_package(OpenMP REQUIRED)
 
@@ -22,24 +22,24 @@ else()
   )
 endif()
 
-add_library(rhgt
+add_library(rhgb
   src/page_locked_string.cpp
   src/read_fasta.cpp
   src/stream_manager.cpp
 )
-target_include_directories(rhgt PUBLIC include)
+target_include_directories(rhgb PUBLIC include)
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 # set_target_properties(gasal2 PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
 if(DEFINED GPU_SM_ARCH)
-  target_compile_options(rhgt PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-arch ${GPU_SM_ARCH}>)
+  target_compile_options(rhgb PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-arch ${GPU_SM_ARCH}>)
 endif()
 
 if(DEFINED GPU_COMPUTE_ARCH)
-  target_compile_options(rhgt PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-arch ${GPU_COMPUTE_ARCH}>)
+  target_compile_options(rhgb PRIVATE $<$<COMPILE_LANGUAGE:CUDA>:-arch ${GPU_COMPUTE_ARCH}>)
 endif()
 
-set_target_properties(rhgt PROPERTIES
+set_target_properties(rhgb PROPERTIES
   POSITION_INDEPENDENT_CODE ON
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED YES
@@ -72,12 +72,12 @@ add_executable(unittests
   unittests/test_read_fasta.cpp
   unittests/test_stream_manager.cu
 )
-target_link_libraries(unittests PRIVATE rhgt)
+target_link_libraries(unittests PRIVATE rhgb)
 
 add_executable(test
   unittests/test.cu
 )
-target_link_libraries(test PRIVATE rhgt)
+target_link_libraries(test PRIVATE rhgb)
 
 # configure_file(unittests/test.fasta ${CMAKE_BINARY_DIR}/test.fasta COPYONLY)
 # configure_file(unittests/test_target.fasta ${CMAKE_BINARY_DIR}/test_target.fasta COPYONLY)

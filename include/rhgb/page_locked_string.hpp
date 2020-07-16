@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace rhgt {
+namespace rhgb {
 
 class PageLockedString {
   public:
