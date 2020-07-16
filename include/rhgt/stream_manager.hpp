@@ -1,174 +1,248 @@
 #include "ctpl.hpp"
+#include "error_handling.hpp"
 
 #include <cuda_runtime.h>
 
+#include <iostream>
+
+#include <cmath>
 #include <deque>
 #include <functional>
 #include <omp.h>
 #include <string>
+#include <thread>
+#include <type_traits>
 #include <unordered_map>
 #include <vector>
 
 namespace rhgt {
 
-template<class GPUStorage, class TaskStorage>
-class StreamManager;
-
 typedef int gpu_id_t;
 
-template<class GPUStorage, class TaskStorage>
-struct StreamInfo {
-  gpu_id_t     gpu_id;
-  cudaStream_t stream_id;
-  StreamManager<GPUStorage,TaskStorage> &stream_manager;
+struct RangePair {
+  size_t begin;
+  size_t end;
+  RangePair() = default;
+  RangePair(size_t begin, size_t end) : begin(begin), end(end) {}
+  size_t size() const {
+    return end-begin;
+  }
+  bool operator==(const RangePair &o) const {
+    return begin==o.begin && end==o.end;
+  }
 };
 
+typedef std::vector<RangePair> RangeVector;
+
+RangeVector generate_chunks(const size_t N, const size_t chunks);
+RangeVector generate_chunks(const size_t begin, const size_t end, const size_t chunks);
+RangeVector generate_chunks(const RangePair &range_pair, const size_t chunks);
+
+size_t get_maximum_range(const RangeVector &ranges);
 
 
-std::vector<std::pair<size_t, size_t>> generate_chunks(const size_t N, const size_t chunks){
-  const int step = std::round(N/(double)chunks);
-
-  std::vector<std::pair<size_t, size_t>> ret;
-
-  for(size_t i=0;i<chunks;i++){
-    ret.emplace_back(
-      i*step,
-      (i==chunks-1) ? N : (i+1)*step
-    );
-  }
-
-  return ret;
-}
-
-
-
-std::vector<std::pair<size_t, size_t>> generate_chunks(const size_t begin, const size_t end, const size_t chunks){
-  auto ret = generate_chunks(end-begin, chunks);
-
-  for(auto &x: ret){
-    x.first += begin;
-    x.second += begin;
-  }
-  ret.back().second = end;
-
-  return ret;
-}
-
-
-template<class GPUStorage, class TaskStorage>
-class StreamManager {
+class GPUManager {
  public:
-  typedef std::function<GPUStorage(const size_t gbegin, const size_t gend)> GPUSetupFunc;
-  typedef std::function<TaskStorage(const cudaStream_t stream, const size_t cbegin, const size_t cend)> TaskSetupFunc;
-  typedef std::function<void(const cudaStream_t stream, TaskStorage &task_data)> TaskFinishFunc;
-
-  StreamManager(const std::vector<gpu_id_t> &gpu_ids, const int streams_per_gpu, const int thread_pool_size);
-  ~StreamManager();
-
-  static void error_handle(const cudaError_t &err, const std::string &msg);
+  GPUManager(const std::vector<gpu_id_t> &gpu_ids, const size_t streams_per_gpu, const size_t thread_pool_size);
+  ~GPUManager();
+  std::unordered_map<gpu_id_t, std::vector<cudaStream_t>> gpu_streams;
+  ctpl::thread_pool pool;
 
  private:
-  const std::vector<gpu_id_t> gpu_ids;
-  const int streams_per_gpu;
-
-  typedef std::pair<TaskStorage,TaskFinishFunc> TaskSFPair;
-
-  ctpl::thread_pool pool;
-  std::vector<std::vector<cudaStream_t>> streams;
-  std::vector<GPUStorage> gpu_data;
-  std::vector<std::pair<size_t,size_t>> gpu_ranges;
-  std::vector<std::unordered_map<cudaStream_t, std::deque<TaskSFPair>>> task_data;
-  int _work_items;
-
-  static void CUDART_CB cuda_stream_callback(cudaStream_t stream, cudaError_t status, void *userData);
-
-  void setup_gpus(const int work_items, GPUSetupFunc setup_function);
-
-  void run_tasks(TaskSetupFunc setup, TaskFinishFunc finish);
-
-  cudaStream_t make_stream() const;
+  cudaStream_t make_stream(const gpu_id_t gpu_id) const;
 };
 
 
-template<class GPUStorage, class TaskStorage>
-StreamManager<GPUStorage,TaskStorage>::StreamManager(
-  const std::vector<gpu_id_t> &gpu_ids,
-  const int streams_per_gpu,
-  const int thread_pool_size
-) : gpu_ids(gpu_ids), streams_per_gpu(streams_per_gpu), pool(thread_pool_size) {
-  streams.resize(gpu_ids.size());
-  for(size_t gi=0;gi<gpu_ids.size();gi++)
-  for(size_t si=0;si<streams_per_gpu;si++){
-    streams.at(gi).push_back(make_stream());
+
+template<typename GPUStorage>
+using GPUSetupFunc = std::function<GPUStorage(const int gpu_id, const RangePair range, const size_t chunks, const size_t max_chunk_size)>;
+
+template<typename GPUStorage, typename StreamStorage>
+using StreamSetupFunc = std::function<StreamStorage(const GPUStorage &gpu_storage, const cudaStream_t stream, const size_t max_chunk_size)>;
+
+template<typename GPUStorage, typename StreamStorage>
+using TaskFunc = std::function<void(const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range)>;
+
+template<typename GPUStorage, typename StreamStorage>
+using TaskFinishFunc = std::function<void(const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range)>;
+
+template<typename GPUStorage, typename StreamStorage>
+using StreamFinishFunc = std::function<void(const GPUStorage &gpu_storage, StreamStorage &stream_storage, const cudaStream_t stream, const size_t max_chunk_size)>;
+
+template<typename GPUStorage>
+using GPUFinishFunc = std::function<void(const int gpu_id, GPUStorage &gpu_storage)>;
+
+
+
+template<typename GPUStorage, typename StreamStorage>
+struct PerDeviceStorage {
+  GPUStorage gpu_storage;
+  std::unordered_map<cudaStream_t, StreamStorage> streams;
+};
+
+template<typename GPUStorage, typename StreamStorage>
+using DeviceStorage = std::unordered_map<gpu_id_t, PerDeviceStorage<GPUStorage,StreamStorage>>;
+
+
+
+
+/* Call with
+
+  const GPUSetupFunc<GPUStorage> gpu_setup = [&](const int gpu_id, const RangePair range, const size_t chunks, const size_t max_chunk_size) -> GPUStorage {
+
+  };
+
+  const StreamSetupFunc<GPUStorage,StreamStorage> stream_setup = [&](const GPUStorage &gpu_storage, const cudaStream_t stream, const size_t max_chunk_size){
+
+  };
+
+  const TaskFunc<GPUStorage,StreamStorage> task_func = [](const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range) {
+
+  };
+
+  const TaskFinishFunc<GPUStorage,StreamStorage> task_finish = [&](const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range){
+
+  };
+
+  const StreamFinishFunc<GPUStorage,StreamStorage> stream_finish = [&](const GPUStorage &gpu_storage, StreamStorage &stream_storage, const cudaStream_t stream, const size_t max_chunk_size){
+
+  };
+
+  const GPUFinishFunc<GPUStorage> gpu_finish = [&](const int gpu_id, GPUStorage &gpu_storage){
+
+  };
+
+  const auto storage = TaskWork(
+    gpu_manager,
+    work_items,
+    chunks_per_gpu,
+    gpu_setup,
+    stream_setup,
+    task_func,
+    task_finish,
+    stream_finish,
+    gpu_finish
+  );
+*/
+template<typename GPUStorage, typename StreamStorage>
+DeviceStorage<GPUStorage,StreamStorage> TaskWork(
+  GPUManager  &gpu_manager,
+  const int    work_items,
+  const int    chunks_per_gpu,
+  GPUSetupFunc<GPUStorage>                    gpu_setup,
+  StreamSetupFunc<GPUStorage,StreamStorage>   stream_setup,
+  TaskFunc<GPUStorage,StreamStorage>          task_func,
+  TaskFinishFunc<GPUStorage,StreamStorage>    task_finish,
+  StreamFinishFunc<GPUStorage,StreamStorage>  stream_finish,
+  GPUFinishFunc<GPUStorage>                   gpu_finish
+){
+  const auto gpu_chunks = generate_chunks(work_items, gpu_manager.gpu_streams.size());
+
+  //Allocate per-device and per-stream storage
+  DeviceStorage<GPUStorage,StreamStorage> storage;
+
+  //Set up the unordered_map for all the GPUs so we can access it with mutex in the threads below
+  for(const auto &gpu_stream: gpu_manager.gpu_streams){
+    storage[gpu_stream.first] = {};
+    for(const auto &stream: gpu_stream.second)
+      storage.at(gpu_stream.first).streams[stream] = {};
   }
 
-  gpu_data.resize  (gpu_ids.size());
-  gpu_ranges.resize(gpu_ids.size());
-  task_data.resize (gpu_ids.size());
-}
+  //Vector for handling multithreading of GPU management
+  std::vector<std::thread> gpu_runners;
 
+  //Vector for handling each stream on each GPU
+  std::vector<std::vector<std::thread>> gpu_stream_runners(gpu_manager.gpu_streams.size());
 
-template<class GPUStorage, class TaskStorage>
-StreamManager<GPUStorage,TaskStorage>::~StreamManager(){
-  for(const auto &gpu_streams: streams)
-  for(const auto &stream: gpu_streams)
-    error_handle(cudaStreamDestroy(stream), "Could not destroy a CUDA stream!");
-}
+  //Consider each GPU
+  size_t gi = 0; //GPU index - used for mapping GPUs to chunks
+  for(auto &gpu_stream: gpu_manager.gpu_streams){
+    const auto gpu_id = gpu_stream.first;       //CUDA ID of this GPU
 
+    //Set the GPUs up in separate threads
+    gpu_runners.emplace_back([&, gi, gpu_id](){
+      const auto &stream_ids = gpu_manager.gpu_streams.at(gpu_id); //Streams assigned to this GPU
+      auto &stream_runners = gpu_stream_runners.at(gi);
+      auto &gpu_storage = storage.at(gpu_id).gpu_storage;
 
-template<class GPUStorage, class TaskStorage>
-void StreamManager<GPUStorage,TaskStorage>::error_handle(const cudaError_t &err, const std::string &msg){
-  if(err!=cudaSuccess)
-    throw std::runtime_error(msg);
-}
+      //Switch this thread to this GPU
+      RCHECKCUDAERROR(cudaSetDevice(gpu_id));
 
+      //Break this GPU's chunk up into chunks to be assigned to streams
+      const auto this_gpu_chunks = generate_chunks(gpu_chunks.at(gi), chunks_per_gpu);
 
-template<class GPUStorage, class TaskStorage>
-cudaStream_t StreamManager<GPUStorage,TaskStorage>::make_stream() const {
-  cudaStream_t temp;
-  error_handle(cudaStreamCreate(&temp), "Could not create a CUDA stream!");
-  error_handle(cudaStreamAddCallback(temp, cuda_stream_callback, (void*)this, 0), "Could not add a callback to CUDA stream!");
-  return temp;
-}
+      //Determine the maximum size of any chunk assigned to this GPU
+      const auto max_chunk_size = get_maximum_range(this_gpu_chunks);
 
+      //Determine which chunks belong to which streams
+      const auto chunks_to_streams = generate_chunks(this_gpu_chunks.size(), stream_ids.size());
 
-template<class GPUStorage, class TaskStorage>
-void StreamManager<GPUStorage,TaskStorage>::setup_gpus(const int work_items, GPUSetupFunc setup_function){
-  _work_items = work_items;
+      //Setup memory for each GPU
+      if(gpu_setup)
+        gpu_storage = gpu_setup(gpu_id, gpu_chunks.at(gi), chunks_per_gpu, max_chunk_size);
 
-  const auto chunks = generate_chunks(work_items, gpu_ids.size());
-  #pragma omp parallel for
-  for(size_t i=0;i<gpu_ids.size();i++){
-    error_handle(cudaSetDevice(gpu_ids.at(i)), "Failed to set CUDA device in setup_gpus!");
-    gpu_data.at(i) = setup_function(chunks.at(i).first, chunks.at(i).second);
-    gpu_ranges.at(i) = chunks.at(i);
+      //Handle all the streams
+      size_t stream_idx = 0;
+      for(const auto &stream_id: stream_ids){
+        stream_runners.emplace_back([&, stream_idx](){
+          auto &stream_storage = storage.at(gpu_id).streams.at(stream_id);
+          if(stream_setup)
+            stream_storage = stream_setup(gpu_storage, stream_id, max_chunk_size);
+
+          const auto my_chunks = chunks_to_streams.at(stream_idx);
+          for(size_t mci=my_chunks.begin;mci<my_chunks.end;mci++){
+            const auto this_chunk = this_gpu_chunks.at(mci);
+            if(task_func)
+              task_func(gpu_storage, stream_storage, stream_id, this_chunk);
+            if(task_finish){
+              cudaStreamSynchronize(stream_id);
+              task_finish(gpu_storage, stream_storage, stream_id, this_chunk);
+            }
+          }
+          cudaStreamSynchronize(stream_id);
+          if(stream_finish)
+            stream_finish(gpu_storage, stream_storage, stream_id, max_chunk_size);
+        });
+        stream_idx++;
+      }
+
+      //Wait for all streams to finish running
+      for(auto &x: stream_runners)
+        x.join();
+    });
+    gi++;
   }
-}
 
+  //Wait for processing to finish
+  for(auto &x: gpu_runners)
+    x.join();
+  gpu_runners.clear();
 
-template<class GPUStorage, class TaskStorage>
-void StreamManager<GPUStorage,TaskStorage>::run_tasks(TaskSetupFunc setup, TaskFinishFunc finish){
-  #pragma omp parallel
-  {
-    const auto gpu_id    = gpu_ids.at(omp_get_thread_num());
-    cudaSetDevice(gpu_id);
+  //Wait for all the GPUs to finish
+  for(const auto &kv: gpu_manager.gpu_streams){
+    RCHECKCUDAERROR(cudaSetDevice(kv.first));
+    RCHECKCUDAERROR(cudaDeviceSynchronize());
+  }
 
-    const auto &gstreams = streams.at(omp_get_thread_num());
-    const auto grange    = gpu_ranges.at(gpu_id);
-
-    const auto chunks = generate_chunks(grange.first, grange.second, streams_per_gpu);
-
-    size_t streami = 0;
-    for(const auto &chunk: chunks){
-      const auto &stream_id = gstreams.at(streami++%gstreams.size());
-      task_data[stream_id].push_back({std::move(setup(
-        stream_id,
-        chunk.first,
-        chunk.second
-      )), finish});
-      auto si = new StreamInfo<GPUStorage,TaskStorage>{gpu_id, stream_id, *this};
+  //Clean up afterwards
+  if(gpu_finish){
+    for(auto &gpu_stream: gpu_manager.gpu_streams){
+      const auto gpu_id = gpu_stream.first;
+      gpu_runners.emplace_back([&,gpu_id](){
+        RCHECKCUDAERROR(cudaSetDevice(gpu_id));
+        if(gpu_finish)
+          gpu_finish(gpu_id, storage.at(gpu_id).gpu_storage);
+      });
     }
   }
+
+  //Wait for cleanup to complete
+  for(auto &x: gpu_runners)
+    x.join();
+  gpu_runners.clear();
+
+  //Return the storage, in case the user wants that
+  return storage;
 }
 
 }

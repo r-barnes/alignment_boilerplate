@@ -25,6 +25,7 @@ endif()
 add_library(rhgt
   src/page_locked_string.cpp
   src/read_fasta.cpp
+  src/stream_manager.cpp
 )
 target_include_directories(rhgt PUBLIC include)
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -72,6 +73,11 @@ add_executable(unittests
   unittests/test_stream_manager.cu
 )
 target_link_libraries(unittests PRIVATE rhgt)
+
+add_executable(test
+  unittests/test.cu
+)
+target_link_libraries(test PRIVATE rhgt)
 
 # configure_file(unittests/test.fasta ${CMAKE_BINARY_DIR}/test.fasta COPYONLY)
 # configure_file(unittests/test_target.fasta ${CMAKE_BINARY_DIR}/test_target.fasta COPYONLY)
