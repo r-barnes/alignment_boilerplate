@@ -65,19 +65,19 @@ execute_process(
 
 
 
-add_executable(unittests
+add_executable(unittests_rhgb
   unittests/test_main.cpp
   unittests/test_timer.cpp
   unittests/test_page_locked_string.cu
   unittests/test_read_fasta.cpp
   unittests/test_stream_manager.cu
 )
-target_link_libraries(unittests PRIVATE rhgb)
+target_link_libraries(unittests_rhgb PRIVATE rhgb)
 
-add_executable(test
-  unittests/test.cu
-)
-target_link_libraries(test PRIVATE rhgb)
+# add_executable(test
+#   unittests/test.cu
+# )
+# target_link_libraries(test PRIVATE rhgb)
 
 # configure_file(unittests/test.fasta ${CMAKE_BINARY_DIR}/test.fasta COPYONLY)
 # configure_file(unittests/test_target.fasta ${CMAKE_BINARY_DIR}/test_target.fasta COPYONLY)
