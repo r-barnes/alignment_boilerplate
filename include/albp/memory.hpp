@@ -2,6 +2,8 @@
 
 #include "error_handling.hpp"
 
+namespace albp {
+
 //Allocate `count` items in page-locked memory
 template<class T>
 T* PageLockedMalloc(const size_t count, const T *const host_data=nullptr){
@@ -12,8 +14,6 @@ T* PageLockedMalloc(const size_t count, const T *const host_data=nullptr){
     return temp;
 }
 
-
-
 //Allocate `count` items on device memory
 template<class T>
 T* DeviceMalloc(const size_t count, const T *const host_data=nullptr){
@@ -22,4 +22,6 @@ T* DeviceMalloc(const size_t count, const T *const host_data=nullptr){
     if(host_data)
         RCHECKCUDAERROR(cudaMemcpy(temp, host_data, count*sizeof(T), cudaMemcpyHostToDevice));
     return temp;
+}
+
 }
