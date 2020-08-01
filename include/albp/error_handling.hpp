@@ -7,7 +7,7 @@
 
 namespace albp {
 
-#define RCHECKCUDAERROR(error) albp::CudaErrorHandler(error, __FILE__, __LINE__)
+#define ALBP_CUDA_ERROR_CHECK(error) albp::CudaErrorHandler(error, __FILE__, __LINE__)
 
 inline void CudaErrorHandler(const cudaError_t &err, const std::string &file, const size_t line){
   if (err==cudaSuccess)

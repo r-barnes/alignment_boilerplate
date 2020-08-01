@@ -144,18 +144,18 @@ TEST_CASE("Stream Manager"){
   };
 
   const TaskFunc<GPUStorage,StreamStorage> task_func = [](const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range) {
-    RCHECKCUDAERROR(cudaMemcpyAsync(stream_storage.d_data, gpu_storage.data+range.begin, range.size()*sizeof(double), cudaMemcpyHostToDevice, stream));
+    ALBP_CUDA_ERROR_CHECK(cudaMemcpyAsync(stream_storage.d_data, gpu_storage.data+range.begin, range.size()*sizeof(double), cudaMemcpyHostToDevice, stream));
 
     gpu_test_kernel<<<200,128,0,stream>>>(stream_storage.d_data, range.size());
-    RCHECKCUDAERROR(cudaGetLastError());
+    ALBP_CUDA_ERROR_CHECK(cudaGetLastError());
 
-    RCHECKCUDAERROR(cudaMemcpyAsync(gpu_storage.data+range.begin, stream_storage.d_data, range.size()*sizeof(double), cudaMemcpyDeviceToHost, stream));
+    ALBP_CUDA_ERROR_CHECK(cudaMemcpyAsync(gpu_storage.data+range.begin, stream_storage.d_data, range.size()*sizeof(double), cudaMemcpyDeviceToHost, stream));
   };
 
   const TaskFinishFunc<GPUStorage,StreamStorage> task_finish = [&](const GPUStorage &gpu_storage, const StreamStorage &stream_storage, const cudaStream_t stream, const RangePair range){};
 
   const StreamFinishFunc<GPUStorage,StreamStorage> stream_finish = [&](const GPUStorage &gpu_storage, StreamStorage &stream_storage, const cudaStream_t stream, const size_t max_chunk_size){
-    RCHECKCUDAERROR(cudaFree(stream_storage.d_data));
+    ALBP_CUDA_ERROR_CHECK(cudaFree(stream_storage.d_data));
   };
 
   const GPUFinishFunc<GPUStorage> gpu_finish = [&](const int gpu_id, GPUStorage &gpu_storage){};
@@ -172,7 +172,7 @@ TEST_CASE("Stream Manager"){
     gpu_finish
   );
 
-  RCHECKCUDAERROR(cudaDeviceSynchronize());
+  ALBP_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
 
   bool good = true;
   for(int wi=0;wi<work_items;wi++){
@@ -185,6 +185,6 @@ TEST_CASE("Stream Manager"){
   CHECK(good);
 
   for(auto &kv: storage){
-    RCHECKCUDAERROR(cudaFreeHost(kv.second.gpu_storage.data));
+    ALBP_CUDA_ERROR_CHECK(cudaFreeHost(kv.second.gpu_storage.data));
   }
 }

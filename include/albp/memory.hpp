@@ -8,9 +8,9 @@ namespace albp {
 template<class T>
 T* PageLockedMalloc(const size_t count, const T *const host_data=nullptr){
     T *temp;
-    RCHECKCUDAERROR(cudaMallocHost(&temp, count*sizeof(T), cudaHostAllocDefault));
+    ALBP_CUDA_ERROR_CHECK(cudaMallocHost(&temp, count*sizeof(T), cudaHostAllocDefault));
     if(host_data)
-        RCHECKCUDAERROR(cudaMemcpy(temp, host_data, count*sizeof(T), cudaMemcpyHostToHost));
+        ALBP_CUDA_ERROR_CHECK(cudaMemcpy(temp, host_data, count*sizeof(T), cudaMemcpyHostToHost));
     return temp;
 }
 
@@ -18,9 +18,9 @@ T* PageLockedMalloc(const size_t count, const T *const host_data=nullptr){
 template<class T>
 T* DeviceMalloc(const size_t count, const T *const host_data=nullptr){
     T *temp;
-    RCHECKCUDAERROR(cudaMalloc(&temp, count*sizeof(T)));
+    ALBP_CUDA_ERROR_CHECK(cudaMalloc(&temp, count*sizeof(T)));
     if(host_data)
-        RCHECKCUDAERROR(cudaMemcpy(temp, host_data, count*sizeof(T), cudaMemcpyHostToDevice));
+        ALBP_CUDA_ERROR_CHECK(cudaMemcpy(temp, host_data, count*sizeof(T), cudaMemcpyHostToDevice));
     return temp;
 }
 
