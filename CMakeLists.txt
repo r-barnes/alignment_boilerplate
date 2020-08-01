@@ -24,8 +24,9 @@ endif()
 
 add_library(albp
   src/page_locked_string.cpp
+  src/ranges.cpp
   src/read_fasta.cpp
-  src/stream_manager.cpp
+  # src/stream_manager.cpp
 )
 target_include_directories(albp PUBLIC include)
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
@@ -69,9 +70,10 @@ add_executable(unittests
   unittests/test_main.cpp
   unittests/test_timer.cpp
   unittests/test_page_locked_string.cu
+  unittests/test_ranges.cpp
   unittests/test_read_fasta.cpp
   unittests/test_reordering.cpp
-  unittests/test_stream_manager.cu
+  # unittests/test_stream_manager.cu
 )
 target_link_libraries(unittests PRIVATE albp)
 

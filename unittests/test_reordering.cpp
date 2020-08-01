@@ -8,33 +8,33 @@
 
 
 
-TEST_CASE("sorted_ordering"){
-  std::mt19937 gen;
-  std::uniform_int_distribution<short> len_dist(0,std::numeric_limits<short>::max());
-  std::vector<short> data;
+// TEST_CASE("sorted_ordering"){
+//   std::mt19937 gen;
+//   std::uniform_int_distribution<short> len_dist(0,std::numeric_limits<short>::max());
+//   std::vector<short> data;
 
-  for(int i=0;i<3000;i++){
-    const int len = len_dist(gen);
-    data.clear();
-    for(int i=0;i<len;i++){
-      data.push_back(i);
-    }
+//   for(int i=0;i<3000;i++){
+//     const int len = len_dist(gen);
+//     data.clear();
+//     for(int i=0;i<len;i++){
+//       data.push_back(i);
+//     }
 
-    //Shuffle the data
-    std::shuffle(data.begin(), data.end(), gen);
+//     //Shuffle the data
+//     std::shuffle(data.begin(), data.end(), gen);
 
-    //Get the sorted ordering
-    const auto comp = [&](const size_t ai, const size_t bi){
-      return data[ai]<data[bi];
-    };
+//     //Get the sorted ordering
+//     const auto comp = [&](const size_t ai, const size_t bi){
+//       return data[ai]<data[bi];
+//     };
 
-    const auto ordering = albp::sorted_ordering(data.size(), comp);
+//     const auto ordering = albp::sorted_ordering(data.size(), comp);
 
-    albp::forward_reorder(data, ordering);
+//     albp::forward_reorder(data, ordering);
 
-    CHECK(std::is_sorted(data.begin(), data.end()));
-  }
-}
+//     CHECK(std::is_sorted(data.begin(), data.end()));
+//   }
+// }
 
 
 

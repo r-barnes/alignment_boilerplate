@@ -10,6 +10,17 @@
 
 namespace albp {
 
+///@brief Get the sorted positions of elements in a vector
+template<class OrderingFunction>
+std::vector<uint32_t> sorted_ordering(const size_t N, OrderingFunction func){
+  std::vector<uint32_t> ordering(N);
+  std::iota(ordering.begin(), ordering.end(), 0);
+  std::sort(ordering.begin(), ordering.end(), func);
+  return ordering;
+}
+
+
+
 ///@brief Reorder a vector by moving its elements to indices indicted by another
 ///       vector. Takes O(N) time and O(N) space. Allocations are amoritzed.
 ///
