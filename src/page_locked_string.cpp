@@ -1,11 +1,11 @@
-#include <rhgb/error_handling.hpp>
-#include <rhgb/memory.hpp>
-#include <rhgb/page_locked_string.hpp>
+#include <albp/error_handling.hpp>
+#include <albp/memory.hpp>
+#include <albp/page_locked_string.hpp>
 
 #include <cstring>
 #include <stdexcept>
 
-namespace rhgb {
+namespace albp {
 
 PageLockedString::PageLockedString(size_t capacity) : _str(PageLockedMalloc<char>(capacity)), _capacity(capacity) {}
 

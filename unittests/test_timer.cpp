@@ -1,11 +1,11 @@
-#include <rhgb/timer.hpp>
+#include <albp/timer.hpp>
 
 #include "doctest.h"
 
 #include <chrono>
 #include <thread>
 
-using namespace rhgb;
+using namespace albp;
 
 TEST_CASE("Timer Start Stop"){
   Timer timer;

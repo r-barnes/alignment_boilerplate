@@ -15,7 +15,7 @@
 #include <unordered_map>
 #include <vector>
 
-namespace rhgb {
+namespace albp {
 
 typedef int gpu_id_t;
 

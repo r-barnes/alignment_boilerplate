@@ -1,10 +1,10 @@
-#include <rhgb/read_fasta.hpp>
+#include <albp/read_fasta.hpp>
 
 #include "doctest.h"
 
 #include <stdexcept>
 
-using namespace rhgb;
+using namespace albp;
 
 TEST_CASE("No fasta file"){
   CHECK_THROWS_AS(ReadFasta("not-a-file"), std::runtime_error);

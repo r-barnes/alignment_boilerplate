@@ -1,10 +1,10 @@
-#include <rhgb/page_locked_string.hpp>
+#include <albp/page_locked_string.hpp>
 
 #include "doctest.h"
 
 #include <stdexcept>
 
-using namespace rhgb;
+using namespace albp;
 
 TEST_CASE("PageLockedString"){
   PageLockedString pls(20);

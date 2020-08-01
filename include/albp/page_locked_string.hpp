@@ -2,7 +2,7 @@
 
 #include <string>
 
-namespace rhgb {
+namespace albp {
 
 class PageLockedString {
   public:

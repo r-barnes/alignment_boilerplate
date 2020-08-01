@@ -1,9 +1,9 @@
-#include <rhgb/stream_manager.hpp>
-#include <rhgb/memory.hpp>
+#include <albp/stream_manager.hpp>
+#include <albp/memory.hpp>
 
 #include "doctest.h"
 
-using namespace rhgb;
+using namespace albp;
 
 namespace std {
   template<typename T, typename U>
