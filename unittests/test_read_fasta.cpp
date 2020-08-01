@@ -2,6 +2,7 @@
 
 #include "doctest.h"
 
+#include <algorithm>
 #include <stdexcept>
 
 using namespace albp;
@@ -26,4 +27,19 @@ TEST_CASE("Read Fasta"){
 TEST_CASE("Read Pair"){
   const auto input_data = ReadFastaQueryTargetPair("query_batch.fasta", "target_batch.fasta");
   CHECK(input_data.sequence_count()==20'000);
+}
+
+TEST_CASE("get_max_length"){
+  std::vector<std::string> dat = {
+    "abc",
+    "abcdef",
+    "g",
+    "asdfa"
+  };
+
+  std::sort(dat.begin(), dat.end());
+
+  do {
+    CHECK(get_max_length(dat)==6);
+  } while (next_permutation(dat.begin(), dat.end()));
 }
