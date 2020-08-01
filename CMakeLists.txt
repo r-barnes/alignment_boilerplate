@@ -23,6 +23,7 @@ else()
 endif()
 
 add_library(albp
+  src/page_locked_fasta.cpp
   src/page_locked_string.cpp
   src/ranges.cpp
   src/read_fasta.cpp
@@ -67,13 +68,14 @@ execute_process(
 
 
 add_executable(unittests
+  # unittests/test_stream_manager.cu
   unittests/test_main.cpp
-  unittests/test_timer.cpp
+  unittests/test_page_locked_fasta.cu
   unittests/test_page_locked_string.cu
   unittests/test_ranges.cpp
   unittests/test_read_fasta.cpp
   unittests/test_reordering.cpp
-  # unittests/test_stream_manager.cu
+  unittests/test_timer.cpp
 )
 target_link_libraries(unittests PRIVATE albp)
 
