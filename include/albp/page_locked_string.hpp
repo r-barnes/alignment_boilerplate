@@ -11,6 +11,10 @@ class PageLockedString {
     ~PageLockedString();
 
     PageLockedString& operator+=(const std::string &o);
+    PageLockedString& operator+=(const char o);
+
+    char&       operator[](const size_t i);
+    const char& operator[](const size_t i) const;
 
     char* data()      const;
     size_t size()     const;

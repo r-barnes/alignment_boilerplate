@@ -46,6 +46,7 @@ TEST_CASE("PageLockedString"){
   CHECK(pls.size()==20);
   CHECK(pls.size_left()==0);
   CHECK(pls.str()=="testingandagaindone.");
+  CHECK(pls[2]=='s');
 
   pls.clear();
   CHECK(pls.capacity()==20);
@@ -54,4 +55,12 @@ TEST_CASE("PageLockedString"){
   CHECK(pls.size()==0);
   CHECK(pls.size_left()==20);
   CHECK(pls.str()=="");
+
+  pls += 'a';
+  CHECK(pls.capacity()==20);
+  CHECK(!pls.empty());
+  CHECK(!pls.full());
+  CHECK(pls.size()==1);
+  CHECK(pls.size_left()==19);
+  CHECK(pls.str()=="a");
 }

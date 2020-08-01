@@ -22,6 +22,17 @@ PageLockedString& PageLockedString::operator+=(const std::string &o){
   return *this;
 }
 
+PageLockedString& PageLockedString::operator+=(const char o){
+  if(_size+1>_capacity)
+    throw std::runtime_error("Appending to the PageLockedString would go above its capacity!");
+  _str[_size] = o;
+  _size += 1;
+  return *this;
+}
+
+char&       PageLockedString::operator[](const size_t i)       { return _str[i]; }
+const char& PageLockedString::operator[](const size_t i) const { return _str[i]; }
+
 char*       PageLockedString::data()      const { return _str;  }
 size_t      PageLockedString::size()      const { return _size; }
 size_t      PageLockedString::size_left() const { return _capacity-_size; }
