@@ -11,7 +11,7 @@ PageLockedString::PageLockedString(size_t capacity) : _str(PageLockedMalloc<char
 
 PageLockedString::~PageLockedString(){
   if(_str)
-    RCHECKCUDAERROR(cudaFreeHost(_str));
+    ALBP_CUDA_ERROR_CHECK(cudaFreeHost(_str));
 }
 
 PageLockedString& PageLockedString::operator+=(const std::string &o){

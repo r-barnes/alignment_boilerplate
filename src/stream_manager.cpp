@@ -18,14 +18,14 @@ GPUManager::GPUManager(
 GPUManager::~GPUManager(){
   for(const auto &gpu_stream: gpu_streams)
   for(const auto &stream: gpu_stream.second)
-    RCHECKCUDAERROR(cudaStreamDestroy(stream));
+    ALBP_CUDA_ERROR_CHECK(cudaStreamDestroy(stream));
 }
 
 
 cudaStream_t GPUManager::make_stream(const gpu_id_t gpu_id) const {
   cudaStream_t temp;
-  RCHECKCUDAERROR(cudaSetDevice(gpu_id));
-  RCHECKCUDAERROR(cudaStreamCreate(&temp));
+  ALBP_CUDA_ERROR_CHECK(cudaSetDevice(gpu_id));
+  ALBP_CUDA_ERROR_CHECK(cudaStreamCreate(&temp));
   return temp;
 }
 

@@ -148,7 +148,7 @@ DeviceStorage<GPUStorage,StreamStorage> TaskWork(
       auto &gpu_storage = storage.at(gpu_id).gpu_storage;
 
       //Switch this thread to this GPU
-      RCHECKCUDAERROR(cudaSetDevice(gpu_id));
+      ALBP_CUDA_ERROR_CHECK(cudaSetDevice(gpu_id));
 
       //Break this GPU's chunk up into chunks to be assigned to streams
       const auto this_gpu_chunks = generate_chunks(gpu_chunks.at(gi), chunks_per_gpu);
@@ -202,8 +202,8 @@ DeviceStorage<GPUStorage,StreamStorage> TaskWork(
 
   //Wait for all the GPUs to finish
   for(const auto &kv: gpu_manager.gpu_streams){
-    RCHECKCUDAERROR(cudaSetDevice(kv.first));
-    RCHECKCUDAERROR(cudaDeviceSynchronize());
+    ALBP_CUDA_ERROR_CHECK(cudaSetDevice(kv.first));
+    ALBP_CUDA_ERROR_CHECK(cudaDeviceSynchronize());
   }
 
   //Clean up afterwards
@@ -211,7 +211,7 @@ DeviceStorage<GPUStorage,StreamStorage> TaskWork(
     for(auto &gpu_stream: gpu_manager.gpu_streams){
       const auto gpu_id = gpu_stream.first;
       gpu_runners.emplace_back([&,gpu_id](){
-        RCHECKCUDAERROR(cudaSetDevice(gpu_id));
+        ALBP_CUDA_ERROR_CHECK(cudaSetDevice(gpu_id));
         if(gpu_finish)
           gpu_finish(gpu_id, storage.at(gpu_id).gpu_storage);
       });
