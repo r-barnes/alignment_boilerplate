@@ -1,24 +1,27 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <limits>
+#include <numeric>
 #include <stack>
 #include <stdexcept>
 #include <vector>
+
+namespace albp {
 
 ///@brief Reorder a vector by moving its elements to indices indicted by another
 ///       vector. Takes O(N) time and O(N) space. Allocations are amoritzed.
 ///
 ///@param[in,out] values   Vector to be reordered
 ///@param[in]     ordering A permutation of the vector
-///@param[in,out] visited  A black-box vector to be reused between calls and
-///                        shared with with `backward_reorder()`
-template<class ValueType, class OrderingType, class ProgressType>
+template<class ValueType, class OrderingType>
 void forward_reorder(
   std::vector<ValueType>          &values,
-  const std::vector<OrderingType> &ordering,
-  std::vector<ProgressType>       &visited
+  const std::vector<OrderingType> &ordering
 ){
+  thread_local std::vector<uint16_t> visited;
+
   if(ordering.size()!=values.size()){
     throw std::runtime_error("ordering and values must be the same size!");
   }
@@ -26,8 +29,9 @@ void forward_reorder(
   //Size the visited vector appropriately. Since vectors don't shrink, this will
   //shortly become large enough to handle most of the inputs. The vector is 1
   //larger than necessary because the first element is special.
-  if(visited.empty() || visited.size()-1<values.size());
+  if(visited.empty() || visited.size()-1<values.size()){
     visited.resize(values.size()+1);
+  }
 
   //If the visitation indicator becomes too large, we reset everything. This is
   //O(N) expensive, but unlikely to occur in most use cases if an appropriate
@@ -36,7 +40,7 @@ void forward_reorder(
   //to avoid having to think too much about off-by-one errors. Note that
   //choosing the biggest data type possible is not necessarily a good idea!
   //Smaller data types will have better cache utilization.
-  if(visited.at(0)==std::numeric_limits<ProgressType>::max()-1)
+  if(visited.at(0)==std::numeric_limits<uint16_t>::max()-1)
     std::fill(visited.begin(), visited.end(), 0);
 
   //We increment the stored visited indicator and make a note of the result. Any
@@ -79,23 +83,22 @@ void forward_reorder(
 ///
 ///@param[in,out] values   Vector to be reordered
 ///@param[in]     ordering A permutation of the vector
-///@param[in,out] visited  A black-box vector to be reused between calls and
-///                        shared with with `forward_reorder()`
-template<class ValueType, class OrderingType, class ProgressType>
+template<class ValueType, class OrderingType>
 void backward_reorder(
   ValueType *const values,
-  const std::vector<OrderingType> &ordering,
-  std::vector<ProgressType>       &visited
+  const std::vector<OrderingType> &ordering
 ){
   //The orderings form a linked list. We need O(N) memory to reverse a linked
   //list. We use `thread_local` so that the function is reentrant.
   thread_local std::stack<OrderingType> stack;
+  thread_local std::vector<uint16_t> visited;
 
   //Size the visited vector appropriately. Since vectors don't shrink, this will
   //shortly become large enough to handle most of the inputs. The vector is 1
   //larger than necessary because the first element is special.
-  if(visited.empty() || visited.size()-1<ordering.size());
+  if(visited.empty() || visited.size()-1<ordering.size()){
     visited.resize(ordering.size()+1);
+  }
 
   //If the visitation indicator becomes too large, we reset everything. This is
   //O(N) expensive, but unlikely to occur in most use cases if an appropriate
@@ -104,7 +107,7 @@ void backward_reorder(
   //to avoid having to think too much about off-by-one errors. Note that
   //choosing the biggest data type possible is not necessarily a good idea!
   //Smaller data types will have better cache utilization.
-  if(visited.at(0)==std::numeric_limits<ProgressType>::max()-1)
+  if(visited.at(0)==std::numeric_limits<uint16_t>::max()-1)
     std::fill(visited.begin(), visited.end(), 0);
 
   //We increment the stored visited indicator and make a note of the result. Any
@@ -145,4 +148,6 @@ void backward_reorder(
     }
     visited[s+1] = visited_indicator;
   }
+}
+
 }
