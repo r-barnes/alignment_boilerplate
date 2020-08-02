@@ -16,6 +16,18 @@ const char * PageLockedFasta::seq_begin(size_t i) const { return &sequences[star
 char *       PageLockedFasta::seq_end  (size_t i)       { return &sequences[ends[i]];   }
 const char * PageLockedFasta::seq_end  (size_t i) const { return &sequences[ends[i]];   }
 
+size_t PageLockedFasta::bytes_between(size_t a, size_t b) const {
+  return ends[b-1]-starts[a];
+}
+
+size_t PageLockedFasta::total_sequence_bytes() const {
+  return ends[sequence_count-1] - starts[0];
+}
+
+size_t PageLockedFasta::bytes_between(const RangePair &rp) const {
+  return bytes_between(rp.begin, rp.end);
+}
+
 
 
 PageLockedFasta page_lock(const FastaInput &inp){

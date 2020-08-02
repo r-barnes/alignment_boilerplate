@@ -1,5 +1,6 @@
 #include <albp/memory.hpp>
 #include <albp/page_locked_string.hpp>
+#include <albp/ranges.hpp>
 #include <albp/read_fasta.hpp>
 
 namespace albp {
@@ -14,10 +15,14 @@ struct PageLockedFasta {
   cuda_unique_hptr<size_t> starts;        //< Starting indices of each sequence
   cuda_unique_hptr<size_t> ends;          //< Ending indices of each sequence
   cuda_unique_hptr<size_t> sizes;         //< Lengths of the sequences
-  char *       seq_begin(size_t i);       //< Pointer to beginning of Sequence i
-  const char * seq_begin(size_t i) const; //< Pointer to beginning of Sequence i
-  char *       seq_end  (size_t i);       //< Pointer to 1 past end of Sequence i
-  const char * seq_end  (size_t i) const; //< Pointer to 1 past end of Sequence i
+
+  char *       seq_begin(size_t i);       //< Pointer to beginning of Sequence i in `sequences`
+  const char * seq_begin(size_t i) const; //< Pointer to beginning of Sequence i in `sequences`
+  char *       seq_end  (size_t i);       //< Pointer to 1 past end of Sequence i in `sequences`
+  const char * seq_end  (size_t i) const; //< Pointer to 1 past end of Sequence i in `sequences`
+  size_t       total_bytes() const;       //< Number of bytes in all sequences
+  size_t       bytes_between(size_t a, size_t b) const;  //< Bytes in `sequences` between the beginning of sequence a and beginning of sequence b
+  size_t       bytes_between(const RangePair &rp) const; //< Bytes in `sequences` between the beginnings of the two sequences identified by the pair
 };
 
 
