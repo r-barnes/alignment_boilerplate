@@ -11,6 +11,11 @@ PageLockedFasta::PageLockedFasta(const size_t sequence_count, const size_t seque
   sizes.reset (PageLockedMalloc<size_t>(sequence_count));
 }
 
+char *       PageLockedFasta::seq_begin(size_t i)       { return &sequences[starts[i]]; }
+const char * PageLockedFasta::seq_begin(size_t i) const { return &sequences[starts[i]]; }
+char *       PageLockedFasta::seq_end  (size_t i)       { return &sequences[ends[i]];   }
+const char * PageLockedFasta::seq_end  (size_t i) const { return &sequences[ends[i]];   }
+
 
 
 PageLockedFasta page_lock(const FastaInput &inp){

@@ -6,14 +6,18 @@ namespace albp {
 
 struct PageLockedFasta {
   PageLockedFasta(const size_t sequence_count, const size_t sequence_bytes);
-  size_t sequence_count;                //< Number of sequences
-  size_t maximum_sequence_length;       //< Length of the longest sequence
-  PageLockedString sequences;           //< Compressed sequences
-  std::vector<std::string> headers;     //< Headers for the sequences (not sent to GPU)
-  PageLockedString modifiers;           //< Modifiers for the sequences
-  cuda_unique_hptr<size_t> starts;      //< Starting indices of each sequence
-  cuda_unique_hptr<size_t> ends;        //< Ending indices of each sequence
-  cuda_unique_hptr<size_t> sizes;       //< Lengths of the sequences
+  size_t sequence_count;                  //< Number of sequences
+  size_t maximum_sequence_length;         //< Length of the longest sequence
+  PageLockedString sequences;             //< Compressed sequences
+  std::vector<std::string> headers;       //< Headers for the sequences (not sent to GPU)
+  PageLockedString modifiers;             //< Modifiers for the sequences
+  cuda_unique_hptr<size_t> starts;        //< Starting indices of each sequence
+  cuda_unique_hptr<size_t> ends;          //< Ending indices of each sequence
+  cuda_unique_hptr<size_t> sizes;         //< Lengths of the sequences
+  char *       seq_begin(size_t i);       //< Pointer to beginning of Sequence i
+  const char * seq_begin(size_t i) const; //< Pointer to beginning of Sequence i
+  char *       seq_end  (size_t i);       //< Pointer to 1 past end of Sequence i
+  const char * seq_end  (size_t i) const; //< Pointer to 1 past end of Sequence i
 };
 
 
