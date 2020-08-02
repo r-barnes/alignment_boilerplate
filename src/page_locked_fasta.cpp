@@ -20,7 +20,7 @@ size_t PageLockedFasta::bytes_between(size_t a, size_t b) const {
   return ends[b-1]-starts[a];
 }
 
-size_t PageLockedFasta::total_sequence_bytes() const {
+size_t PageLockedFasta::total_bytes() const {
   return ends[sequence_count-1] - starts[0];
 }
 
