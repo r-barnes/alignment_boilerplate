@@ -1,5 +1,7 @@
 #pragma once
 
+#include <albp/memory.hpp>
+
 #include <string>
 
 namespace albp {
@@ -7,8 +9,6 @@ namespace albp {
 class PageLockedString {
   public:
     PageLockedString(size_t capacity);
-
-    ~PageLockedString();
 
     PageLockedString& operator+=(const std::string &o);
     PageLockedString& operator+=(const char o);
@@ -26,7 +26,7 @@ class PageLockedString {
     void clear();
 
   private:
-    char *const _str = nullptr;
+    cuda_unique_hptr<char> _str;
     const size_t _capacity = 0;
     size_t _size = 0;
 };

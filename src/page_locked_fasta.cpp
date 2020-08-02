@@ -6,9 +6,9 @@ namespace albp {
 PageLockedFasta::PageLockedFasta(const size_t sequence_count, const size_t sequence_bytes) :
   sequence_count(sequence_count), sequences(sequence_bytes), modifiers(sequence_count)
 {
-  starts = PageLockedMalloc<size_t>(sequence_count);
-  ends   = PageLockedMalloc<size_t>(sequence_count);
-  sizes  = PageLockedMalloc<size_t>(sequence_count);
+  starts.reset(PageLockedMalloc<size_t>(sequence_count));
+  ends.reset  (PageLockedMalloc<size_t>(sequence_count));
+  sizes.reset (PageLockedMalloc<size_t>(sequence_count));
 }
 
 

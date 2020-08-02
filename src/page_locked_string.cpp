@@ -9,11 +9,6 @@ namespace albp {
 
 PageLockedString::PageLockedString(size_t capacity) : _str(PageLockedMalloc<char>(capacity)), _capacity(capacity) {}
 
-PageLockedString::~PageLockedString(){
-  if(_str)
-    ALBP_CUDA_ERROR_CHECK(cudaFreeHost(_str));
-}
-
 PageLockedString& PageLockedString::operator+=(const std::string &o){
   if(_size+o.size()>_capacity)
     throw std::runtime_error("Appending to the PageLockedString would go above its capacity!");
@@ -33,12 +28,12 @@ PageLockedString& PageLockedString::operator+=(const char o){
 char&       PageLockedString::operator[](const size_t i)       { return _str[i]; }
 const char& PageLockedString::operator[](const size_t i) const { return _str[i]; }
 
-char*       PageLockedString::data()      const { return _str;  }
+char*       PageLockedString::data()      const { return _str.get();  }
 size_t      PageLockedString::size()      const { return _size; }
 size_t      PageLockedString::size_left() const { return _capacity-_size; }
 bool        PageLockedString::empty()     const { return _size==0; }
 bool        PageLockedString::full()      const { return _size==_capacity; }
-std::string PageLockedString::str()       const { return std::string(_str, _str+_size); }
+std::string PageLockedString::str()       const { return std::string(_str.get(), _str.get()+_size); }
 size_t      PageLockedString::capacity()  const { return _capacity; }
 void        PageLockedString::clear()           { _size=0; }
 
