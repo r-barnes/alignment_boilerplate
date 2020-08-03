@@ -6,9 +6,9 @@ namespace albp {
 PageLockedFasta::PageLockedFasta(const size_t sequence_count, const size_t sequence_bytes) :
   sequence_count(sequence_count), sequences(sequence_bytes), modifiers(sequence_count)
 {
-  starts.reset(PageLockedMalloc<size_t>(sequence_count));
-  ends.reset  (PageLockedMalloc<size_t>(sequence_count));
-  sizes.reset (PageLockedMalloc<size_t>(sequence_count));
+  starts.reset(PageLockedMalloc<size_t>(sequence_count+1));
+  ends.reset  (PageLockedMalloc<size_t>(sequence_count  ));
+  sizes.reset (PageLockedMalloc<size_t>(sequence_count  ));
 }
 
 char *       PageLockedFasta::seq_begin(size_t i)       { return &sequences[starts[i]]; }
@@ -47,6 +47,7 @@ PageLockedFasta page_lock(const FastaInput &inp){
     }
     ret.sizes[i]  = inp.sequences.at(i).size();
   }
+  ret.starts[inp.sequence_count()] = ret.ends[inp.sequence_count()-1];
 
   ret.headers = inp.headers;
 

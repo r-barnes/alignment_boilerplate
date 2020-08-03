@@ -12,7 +12,10 @@ struct PageLockedFasta {
   PageLockedString sequences;             //< Compressed sequences
   std::vector<std::string> headers;       //< Headers for the sequences (not sent to GPU)
   PageLockedString modifiers;             //< Modifiers for the sequences
-  cuda_unique_hptr<size_t> starts;        //< Starting indices of each sequence
+
+  ///Starting indices of each sequence (1 longer than sequence count so
+  ///a[i+1]-a[i] is always the length of a given sequence)
+  cuda_unique_hptr<size_t> starts;
   cuda_unique_hptr<size_t> ends;          //< Ending indices of each sequence
   cuda_unique_hptr<size_t> sizes;         //< Lengths of the sequences
 
