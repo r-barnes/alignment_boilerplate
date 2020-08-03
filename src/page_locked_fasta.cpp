@@ -67,4 +67,21 @@ PageLockedFastaPair page_lock(const FastaPair &fp){
   };
 }
 
+
+
+size_t get_max_length(const PageLockedFasta &pl_fasta, const RangePair range){
+  size_t max_len = 0;
+  for(size_t i=range.begin;i<range.end;i++){
+    max_len = std::max(max_len, pl_fasta.sizes[i]);
+  }
+  return max_len;
+}
+
+
+
+size_t get_max_length(const PageLockedFasta &pl_fasta){
+  return get_max_length(pl_fasta, RangePair(0, pl_fasta.sequence_count));
+}
+
+
 }

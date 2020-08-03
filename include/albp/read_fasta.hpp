@@ -43,4 +43,12 @@ FastaPair ReadFastaQueryTargetPair(const std::string &query, const std::string &
 ///@returns The length of the longest string
 size_t get_max_length(const std::vector<std::string> &vector_of_strings);
 
+///@brief Given a vector of strings, return the length of the longest string
+///
+///@param[in] vector_of_strings A vector of strings
+///@param[in] range Range of strings to consider
+///
+///@returns The length of the longest string
+size_t get_max_length(const std::vector<std::string> &vector_of_strings, const RangePair range);
+
 }

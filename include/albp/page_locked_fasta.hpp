@@ -39,4 +39,19 @@ struct PageLockedFastaPair {
 PageLockedFasta     page_lock(const FastaInput &inp);
 PageLockedFastaPair page_lock(const FastaPair &fp);
 
+///@brief Given a page-locked fasta, return the length of the longest string
+///
+///@param[in] pl_fasta A page-locked fasta
+///
+///@returns The length of the longest string
+size_t get_max_length(const PageLockedFasta &pl_fasta);
+
+///@brief Given a page-locked fasta, return the length of the longest string
+///
+///@param[in] vector_of_strings A page-locked fasta
+///@param[in] range Range of strings to consider
+///
+///@returns The length of the longest string
+size_t get_max_length(const PageLockedFasta &pl_fasta, const RangePair range);
+
 }
