@@ -85,4 +85,13 @@ size_t get_max_length(const PageLockedFasta &pl_fasta){
 }
 
 
+
+void copy_sequences_to_device_async(char *dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream){
+  ALBP_CUDA_ERROR_CHECK(cudaMemcpyAsync(dev_ptr, pl_fasta.seq_begin(rp.begin), pl_fasta.bytes_between(rp)*sizeof(char), cudaMemcpyHostToDevice, stream));
+}
+
+void copy_sequences_to_device_async(const cuda_unique_dptr<char> &dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream){
+  copy_sequences_to_device_async(dev_ptr.get(), pl_fasta, rp, stream);
+}
+
 }

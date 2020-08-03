@@ -1,3 +1,5 @@
+#pragma once
+
 #include <albp/memory.hpp>
 #include <albp/page_locked_string.hpp>
 #include <albp/ranges.hpp>
@@ -56,5 +58,11 @@ size_t get_max_length(const PageLockedFasta &pl_fasta);
 ///
 ///@returns The length of the longest string
 size_t get_max_length(const PageLockedFasta &pl_fasta, const RangePair range);
+
+///Copies the sequences indicated by `rp` from the PageLockedFasta to the beginning of the device vector
+void copy_sequences_to_device_async(char *dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream);
+
+///Copies the sequences indicated by `rp` from the PageLockedFasta to the beginning of the device vector
+void copy_sequences_to_device_async(const cuda_unique_dptr<char> &dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream);
 
 }
