@@ -29,7 +29,7 @@ void process_streams(StreamVector &sv, const RangePair range, const size_t chunk
   ctpl::thread_pool pool(sv.size());
 
   //Break up the input range into chunks
-  const auto chunks = generate_chunks(range, 1);
+  const auto chunks = generate_chunks_of_size(range, chunk_size);
 
   std::cerr<<"chunks = "<<chunks.size()<<std::endl;
 

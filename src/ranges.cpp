@@ -1,17 +1,19 @@
-#include <cmath>
 #include <albp/ranges.hpp>
+
+#include <cmath>
+#include <stdexcept>
 
 namespace albp {
 
-RangeVector generate_chunks(const size_t N, const size_t chunks){
-  const int step = std::round(N/(double)chunks);
+RangeVector generate_n_chunks(const size_t N, const size_t chunk_count){
+  const int step = std::round(N/(double)chunk_count);
 
   RangeVector ret;
 
-  for(size_t i=0;i<chunks;i++){
+  for(size_t i=0;i<chunk_count;i++){
     ret.emplace_back(
       i*step,
-      (i==chunks-1) ? N : (i+1)*step
+      (i==chunk_count-1) ? N : (i+1)*step
     );
   }
 
@@ -19,8 +21,8 @@ RangeVector generate_chunks(const size_t N, const size_t chunks){
 }
 
 
-RangeVector generate_chunks(const size_t begin, const size_t end, const size_t chunks){
-  auto ret = generate_chunks(end-begin, chunks);
+RangeVector generate_n_chunks(const size_t begin, const size_t end, const size_t chunk_count){
+  auto ret = generate_n_chunks(end-begin, chunk_count);
 
   for(auto &x: ret){
     x.begin += begin;
@@ -32,8 +34,29 @@ RangeVector generate_chunks(const size_t begin, const size_t end, const size_t c
 }
 
 
-RangeVector generate_chunks(const RangePair &range_pair, const size_t chunks){
-  return generate_chunks(range_pair.begin, range_pair.end, chunks);
+RangeVector generate_n_chunks(const RangePair &range_pair, const size_t chunk_count){
+  return generate_n_chunks(range_pair.begin, range_pair.end, chunk_count);
+}
+
+RangeVector generate_chunks_of_size(const size_t N, const size_t chunk_size){
+  return generate_chunks_of_size(RangePair(0,N), chunk_size);
+}
+
+RangeVector generate_chunks_of_size(const RangePair &range_pair, const size_t chunk_size){
+  RangeVector ret;
+
+  if(chunk_size==0){
+    throw std::runtime_error("chunk_size must be >0!");
+  }
+
+  for(size_t i=range_pair.begin;i<range_pair.end;i+=chunk_size){
+    ret.emplace_back(
+      i,
+      std::min(range_pair.end, i+chunk_size)
+    );
+  }
+
+  return ret;
 }
 
 
