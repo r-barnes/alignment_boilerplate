@@ -27,7 +27,7 @@ add_library(albp
   src/page_locked_string.cpp
   src/ranges.cpp
   src/read_fasta.cpp
-  # src/stream_manager.cpp
+  src/stream_manager.cpp
 )
 target_include_directories(albp PUBLIC include)
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
