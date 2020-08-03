@@ -25,25 +25,32 @@ void process_streams(StreamVector &sv, const size_t item_count, const size_t chu
 }
 
 void process_streams(StreamVector &sv, const RangePair range, const size_t chunk_size){
-  //One thread per stream
-  ctpl::thread_pool pool(sv.size());
-
   //Break up the input range into chunks
   const auto chunks = generate_chunks_of_size(range, chunk_size);
 
+  //Divide the chunks among the streams
+  const auto chunks_to_streams = generate_n_chunks(chunks.size(), sv.size());
+
   std::cerr<<"chunks = "<<chunks.size()<<std::endl;
 
-  //Assign chunks to the streams round-robin style
-  for(size_t i=0;i<chunks.size();i++){
-    pool.push([&](const int){
-      sv.at(i%sv.size())(chunks.at(i));
+  std::vector<std::thread> threads(sv.size());
+
+  //Loop through all streams
+  for(size_t si=0;si<sv.size();si++){
+    threads.at(si) = std::thread([&, si](){
+      for(size_t ci=chunks_to_streams.at(si).begin; ci<chunks_to_streams.at(si).end;ci++){
+        sv.at(si)(chunks.at(ci));
+      }
     });
   }
 
-  std::this_thread::sleep_for(std::chrono::seconds(2));
+  //Wait for CUDA to finish
+  cudaDeviceSynchronize();
 
-  //Wait for all the tasks to finish and then close out the threads
-  pool.stop(true);
+  //Wait for all threads to finish
+  for(auto &thread: threads){
+    thread.join();
+  }
 }
 
 }
