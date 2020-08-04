@@ -1,78 +1,56 @@
-#include <rhgb/error_handling.hpp>
-#include <rhgb/stream_manager.hpp>
+#include <albp/ctpl.hpp>
+#include <albp/error_handling.hpp>
+#include <albp/ranges.hpp>
+#include <albp/stream_manager.hpp>
 
-namespace rhgb {
+#include <cuda_runtime.h>
 
-RangeVector generate_chunks(const size_t N, const size_t chunks){
-  const int step = std::round(N/(double)chunks);
+#include <thread>
+#include <chrono>
+#include <iostream>
 
-  RangeVector ret;
+namespace albp {
 
-  for(size_t i=0;i<chunks;i++){
-    ret.emplace_back(
-      i*step,
-      (i==chunks-1) ? N : (i+1)*step
-    );
-  }
-
-  return ret;
-}
-
-
-RangeVector generate_chunks(const size_t begin, const size_t end, const size_t chunks){
-  auto ret = generate_chunks(end-begin, chunks);
-
-  for(auto &x: ret){
-    x.begin += begin;
-    x.end   += begin;
-  }
-  ret.back().end = end;
-
-  return ret;
-}
-
-
-RangeVector generate_chunks(const RangePair &range_pair, const size_t chunks){
-  return generate_chunks(range_pair.begin, range_pair.end, chunks);
-}
-
-
-size_t get_maximum_range(const RangeVector &ranges){
-  if(ranges.empty())
-    return 0;
-  //The largest range is either the first one or the last one because all the
-  //ranges except the last one are the same size as the first one.
-  return std::max(ranges.front().size(), ranges.back().size());
-}
-
-
-
-
-
-GPUManager::GPUManager(
-  const std::vector<gpu_id_t> &gpu_ids,
-  const size_t streams_per_gpu,
-  const size_t thread_pool_size
-) : pool(thread_pool_size) {
-  for(const auto &gpu_id: gpu_ids)
-  for(size_t si=0;si<streams_per_gpu;si++){
-    gpu_streams[gpu_id].push_back(make_stream(gpu_id));
-  }
-}
-
-
-GPUManager::~GPUManager(){
-  for(const auto &gpu_stream: gpu_streams)
-  for(const auto &stream: gpu_stream.second)
-    RCHECKCUDAERROR(cudaStreamDestroy(stream));
-}
-
-
-cudaStream_t GPUManager::make_stream(const gpu_id_t gpu_id) const {
+cudaStream_t get_new_stream(const int device_id){
+  ALBP_CUDA_ERROR_CHECK(cudaSetDevice(device_id));
   cudaStream_t temp;
-  RCHECKCUDAERROR(cudaSetDevice(gpu_id));
-  RCHECKCUDAERROR(cudaStreamCreate(&temp));
+  ALBP_CUDA_ERROR_CHECK(cudaStreamCreate(&temp));
   return temp;
+}
+
+
+
+void process_streams(StreamVector &sv, const size_t item_count, const size_t chunk_size){
+  process_streams(sv, RangePair(0, item_count), chunk_size);
+}
+
+void process_streams(StreamVector &sv, const RangePair range, const size_t chunk_size){
+  //Break up the input range into chunks
+  const auto chunks = generate_chunks_of_size(range, chunk_size);
+
+  //Divide the chunks among the streams
+  const auto chunks_to_streams = generate_n_chunks(chunks.size(), sv.size());
+
+  std::cerr<<"chunks = "<<chunks.size()<<std::endl;
+
+  std::vector<std::thread> threads(sv.size());
+
+  //Loop through all streams
+  for(size_t si=0;si<sv.size();si++){
+    threads.at(si) = std::thread([&, si](){
+      for(size_t ci=chunks_to_streams.at(si).begin; ci<chunks_to_streams.at(si).end;ci++){
+        sv.at(si)(chunks.at(ci));
+      }
+    });
+  }
+
+  //Wait for CUDA to finish
+  cudaDeviceSynchronize();
+
+  //Wait for all threads to finish
+  for(auto &thread: threads){
+    thread.join();
+  }
 }
 
 }

@@ -1,4 +1,5 @@
-#include <rhgb/read_fasta.hpp>
+#include <albp/ranges.hpp>
+#include <albp/read_fasta.hpp>
 
 #include <algorithm>
 #include <cassert>
@@ -8,14 +9,8 @@
 #include <string>
 #include <vector>
 
-namespace rhgb {
+namespace albp {
 
-/*
-  Reads FASTA files and fills the corresponding buffers.
-  FASTA files contain sequences that are usually on separate lines.
-  The file reader detects a '>' then concatenates all the following lines into one sequence, until the next '>' or EOF.
-  See more about FASTA format : https://en.wikipedia.org/wiki/FASTA_format
-*/
 FastaInput ReadFasta(const std::string &filename){
   std::ifstream fin(filename);
   if(!fin.good()){
@@ -108,5 +103,18 @@ size_t FastaPair::sequence_count() const {
   assert(a.sequence_count()==b.sequence_count());
   return a.sequence_count();
 }
+
+size_t get_max_length(const std::vector<std::string> &vector_of_strings, const RangePair range){
+  const auto maxi = std::max_element(vector_of_strings.begin()+range.begin, vector_of_strings.begin()+range.end,
+    [](const auto &a, const auto &b) { return a.size()<b.size(); }
+  );
+  return maxi->size();
+}
+
+size_t get_max_length(const std::vector<std::string> &vector_of_strings){
+  return get_max_length(vector_of_strings, RangePair(0, vector_of_strings.size()));
+}
+
+
 
 }

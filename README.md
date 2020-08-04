@@ -1,1 +1,4 @@
-Richard's Handy Genomic Boilerplate
+Alignment Boilerplate
+=====================
+
+A handy library of boilerplate code for alignment.
