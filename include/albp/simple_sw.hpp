@@ -108,17 +108,21 @@ void print_matrix(
 
 
 template<class T>
-std::vector<T> extract_diagonal(const Matrix2D<T> &matrix, const size_t diagonal_i){
+std::vector<T> extract_diagonal(const Matrix2D<T> &matrix, const int diagonal_i){
   std::vector<T> diagonal;
   diagonal.reserve(matrix.height);
 
-  if(diagonal_i>=matrix.width+matrix.height-1){
+  if(diagonal_i<0){
+    return {};
+  }
+
+  if((size_t)diagonal_i>=matrix.width+matrix.height-1){
     throw std::runtime_error("diagonal_i was too large for the matrix!");
   }
 
   int i = diagonal_i;
   int j = 0;
-  if(diagonal_i>=matrix.height){
+  if((size_t)diagonal_i>=matrix.height){
     i = matrix.height-1;
     j = diagonal_i - matrix.height + 1;
   }

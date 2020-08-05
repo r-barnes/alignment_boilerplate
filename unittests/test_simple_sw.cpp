@@ -19,6 +19,8 @@ TEST_CASE("Matrix Init"){
   CHECK(mat(2,1) == 10);
   CHECK(mat(2,3) == 12);
 
+  CHECK(extract_diagonal(mat, -2)==std::vector<int>{});
+  CHECK(extract_diagonal(mat, -1)==std::vector<int>{});
   CHECK(extract_diagonal(mat, 0)==std::vector<int>{1});
   CHECK(extract_diagonal(mat, 1)==std::vector<int>{5,2});
   CHECK(extract_diagonal(mat, 2)==std::vector<int>{9,6,3});

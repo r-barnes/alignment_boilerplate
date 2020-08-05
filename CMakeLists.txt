@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.13)
 project(albp LANGUAGES CUDA CXX)
 
 find_package(OpenMP REQUIRED)
+find_package(CUDA REQUIRED)
 
 #TODO: Probably remove this before release since a standard user won't recompile
 #many times
@@ -30,7 +31,8 @@ add_library(albp
   src/simple_sw.cpp
   src/stream_manager.cpp
 )
-target_include_directories(albp PUBLIC include)
+target_include_directories(albp PUBLIC include ${CUDA_INCLUDE_DIRS})
+target_link_libraries(albp PUBLIC ${CUDA_LIBRARIES})
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 # set_target_properties(gasal2 PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
@@ -68,8 +70,7 @@ execute_process(
 
 
 
-add_executable(unittests
-  # unittests/test_stream_manager.cu
+add_executable(unittests_albp
   unittests/test_main.cpp
   unittests/test_page_locked_fasta.cu
   unittests/test_page_locked_string.cu
@@ -79,7 +80,12 @@ add_executable(unittests
   unittests/test_simple_sw.cpp
   unittests/test_timer.cpp
 )
-target_link_libraries(unittests PRIVATE albp)
+target_link_libraries(unittests_albp PRIVATE albp)
+
+add_executable(random_sequence_generator
+  programs/random_sequence_generator.cpp
+)
+target_link_libraries(random_sequence_generator PUBLIC albp)
 
 # configure_file(unittests/test.fasta ${CMAKE_BINARY_DIR}/test.fasta COPYONLY)
 # configure_file(unittests/test_target.fasta ${CMAKE_BINARY_DIR}/test_target.fasta COPYONLY)
