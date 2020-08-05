@@ -23,6 +23,8 @@ SimpleSmithWatermanResult simple_smith_waterman(
   ret.E = Matrix2D<int>(seqa.size(),seqb.size());
   ret.F = Matrix2D<int>(seqa.size(),seqb.size());
   ret.H = Matrix2D<int>(seqa.size(),seqb.size());
+  ret.seqa = seqa;
+  ret.seqb = seqb;
 
   const auto mm = [&](const char a, const char b){ return (a==b)?match_score:mismatch_score; };
 
@@ -42,7 +44,7 @@ SimpleSmithWatermanResult simple_smith_waterman(
       std::max(0, ret.E(i,j)),
       std::max(
         ret.F(i,j),
-        (i>0 && j>0) ? ret.H(i-1,j-1) + mm(seqa[i], seqb[j]) : 0
+        ((i>0 && j>0) ? ret.H(i-1,j-1) : 0) + mm(seqa[i], seqb[j])
       )
     );
   }
