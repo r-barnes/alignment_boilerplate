@@ -1,5 +1,4 @@
-#include "doctest.h"
-
+#include <albp/doctest.hpp>
 #include <albp/page_locked_fasta.hpp>
 #include <albp/read_fasta.hpp>
 

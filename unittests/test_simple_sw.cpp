@@ -1,6 +1,5 @@
-#include "doctest.h"
-#include "doctest_vectors.h"
-
+#include <albp/doctest.hpp>
+#include <albp/doctest_vectors.hpp>
 #include <albp/simple_sw.hpp>
 
 using namespace albp;

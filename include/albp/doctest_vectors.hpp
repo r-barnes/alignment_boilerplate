@@ -1,6 +1,6 @@
 #pragma once
 
-#include "doctest.h"
+#include <albp/doctest.hpp>
 
 #include <thrust/device_vector.h>
 

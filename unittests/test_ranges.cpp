@@ -1,5 +1,4 @@
-#include "doctest.h"
-
+#include <albp/doctest.hpp>
 #include <albp/ranges.hpp>
 
 #include <stdexcept>

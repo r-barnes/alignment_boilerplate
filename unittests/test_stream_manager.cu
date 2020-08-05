@@ -1,7 +1,6 @@
+#include <albp/doctest.hpp>
 #include <albp/stream_manager.hpp>
 #include <albp/memory.hpp>
-
-#include "doctest.h"
 
 using namespace albp;
 

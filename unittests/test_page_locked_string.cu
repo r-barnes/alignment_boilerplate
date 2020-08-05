@@ -1,6 +1,5 @@
+#include <albp/doctest.hpp>
 #include <albp/page_locked_string.hpp>
-
-#include "doctest.h"
 
 #include <stdexcept>
 
