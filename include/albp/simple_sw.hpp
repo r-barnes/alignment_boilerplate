@@ -88,20 +88,20 @@ void print_matrix(
   const std::string &seqb,
   const Matrix2D<T> &matrix
 ){
-  std::cout<<"\n"<<message<<":\n";
+  std::cerr<<"\n"<<message<<":\n";
 
-  std::cout<<"  ";
+  std::cerr<<"  ";
   for(const auto &x: seqb){
-    std::cout<<std::setw(2)<<x<<" ";
+    std::cerr<<std::setw(2)<<x<<" ";
   }
-  std::cout<<"\n";
+  std::cerr<<"\n";
 
   for(size_t i=0;i<seqa.size();i++){
-    std::cout<<seqa[i]<<" ";
+    std::cerr<<seqa[i]<<" ";
     for(size_t j=0;j<seqb.size();j++){
-      std::cout<<std::setw(2)<<matrix(i,j)<<" ";
+      std::cerr<<std::setw(2)<<(int)matrix(i,j)<<" ";
     }
-    std::cout<<"\n";
+    std::cerr<<"\n";
   }
 }
 
