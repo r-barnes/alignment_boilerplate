@@ -27,6 +27,7 @@ add_library(albp
   src/page_locked_string.cpp
   src/ranges.cpp
   src/read_fasta.cpp
+  src/simple_sw.cpp
   src/stream_manager.cpp
 )
 target_include_directories(albp PUBLIC include)
@@ -75,6 +76,7 @@ add_executable(unittests
   unittests/test_ranges.cpp
   unittests/test_read_fasta.cpp
   unittests/test_reordering.cpp
+  unittests/test_simple_sw.cpp
   unittests/test_timer.cpp
 )
 target_link_libraries(unittests PRIVATE albp)
