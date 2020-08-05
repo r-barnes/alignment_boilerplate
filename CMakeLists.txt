@@ -80,5 +80,10 @@ add_executable(unittests_albp
 )
 target_link_libraries(unittests_albp PRIVATE albp)
 
+add_executable(random_sequence_generator
+  programs/random_sequence_generator.cpp
+)
+target_link_libraries(random_sequence_generator PUBLIC albp)
+
 # configure_file(unittests/test.fasta ${CMAKE_BINARY_DIR}/test.fasta COPYONLY)
 # configure_file(unittests/test_target.fasta ${CMAKE_BINARY_DIR}/test_target.fasta COPYONLY)
