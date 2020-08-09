@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.13)
 
 project(albp LANGUAGES CUDA CXX)
 
+find_package(CUDA REQUIRED)
 find_package(OpenMP REQUIRED)
 
 #TODO: Probably remove this before release since a standard user won't recompile
@@ -30,6 +31,8 @@ add_library(albp
   # src/stream_manager.cpp
 )
 target_include_directories(albp PUBLIC include)
+target_link_libraries(albp PUBLIC ${CUDA_LIBRARIES})
+target_include_directories(albp PUBLIC ${CUDA_INCLUDE_DIRS})
 # set_target_properties(gasal2 PROPERTIES CUDA_RESOLVE_DEVICE_SYMBOLS ON)
 # set_target_properties(gasal2 PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
 
@@ -47,6 +50,10 @@ set_target_properties(albp PROPERTIES
   CXX_STANDARD_REQUIRED YES
 )
 
+add_executable(analyze_fasta
+  programs/analyze_fasta.cpp
+)
+target_link_libraries(analyze_fasta PUBLIC albp)
 
 
 # add_executable(test_prog test_prog/test_prog.cpp)
