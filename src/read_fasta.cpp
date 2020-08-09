@@ -1,3 +1,4 @@
+#include <albp/ranges.hpp>
 #include <albp/read_fasta.hpp>
 
 #include <algorithm>
@@ -103,11 +104,17 @@ size_t FastaPair::sequence_count() const {
   return a.sequence_count();
 }
 
-size_t get_max_length(const std::vector<std::string> &vector_of_strings){
-  const auto maxi = std::max_element(vector_of_strings.begin(), vector_of_strings.end(),
+size_t get_max_length(const std::vector<std::string> &vector_of_strings, const RangePair range){
+  const auto maxi = std::max_element(vector_of_strings.begin()+range.begin, vector_of_strings.begin()+range.end,
     [](const auto &a, const auto &b) { return a.size()<b.size(); }
   );
   return maxi->size();
 }
+
+size_t get_max_length(const std::vector<std::string> &vector_of_strings){
+  return get_max_length(vector_of_strings, RangePair(0, vector_of_strings.size()));
+}
+
+
 
 }

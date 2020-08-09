@@ -6,9 +6,9 @@ namespace albp {
 PageLockedFasta::PageLockedFasta(const size_t sequence_count, const size_t sequence_bytes) :
   sequence_count(sequence_count), sequences(sequence_bytes), modifiers(sequence_count)
 {
-  starts.reset(PageLockedMalloc<size_t>(sequence_count));
-  ends.reset  (PageLockedMalloc<size_t>(sequence_count));
-  sizes.reset (PageLockedMalloc<size_t>(sequence_count));
+  starts.reset(PageLockedMalloc<size_t>(sequence_count+1));
+  ends.reset  (PageLockedMalloc<size_t>(sequence_count  ));
+  sizes.reset (PageLockedMalloc<size_t>(sequence_count  ));
 }
 
 char *       PageLockedFasta::seq_begin(size_t i)       { return &sequences[starts[i]]; }
@@ -47,6 +47,7 @@ PageLockedFasta page_lock(const FastaInput &inp){
     }
     ret.sizes[i]  = inp.sequences.at(i).size();
   }
+  ret.starts[inp.sequence_count()] = ret.ends[inp.sequence_count()-1];
 
   ret.headers = inp.headers;
 
@@ -65,6 +66,32 @@ PageLockedFastaPair page_lock(const FastaPair &fp){
     fp.total_cells_1_to_1(),
     fp.sequence_count()
   };
+}
+
+
+
+size_t get_max_length(const PageLockedFasta &pl_fasta, const RangePair range){
+  size_t max_len = 0;
+  for(size_t i=range.begin;i<range.end;i++){
+    max_len = std::max(max_len, pl_fasta.sizes[i]);
+  }
+  return max_len;
+}
+
+
+
+size_t get_max_length(const PageLockedFasta &pl_fasta){
+  return get_max_length(pl_fasta, RangePair(0, pl_fasta.sequence_count));
+}
+
+
+
+void copy_sequences_to_device_async(char *dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream){
+  ALBP_CUDA_ERROR_CHECK(cudaMemcpyAsync(dev_ptr, pl_fasta.seq_begin(rp.begin), pl_fasta.bytes_between(rp)*sizeof(char), cudaMemcpyHostToDevice, stream));
+}
+
+void copy_sequences_to_device_async(const cuda_unique_dptr<char> &dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream){
+  copy_sequences_to_device_async(dev_ptr.get(), pl_fasta, rp, stream);
 }
 
 }

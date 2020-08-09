@@ -1,3 +1,5 @@
+#pragma once
+
 #include <albp/memory.hpp>
 #include <albp/page_locked_string.hpp>
 #include <albp/ranges.hpp>
@@ -12,7 +14,10 @@ struct PageLockedFasta {
   PageLockedString sequences;             //< Compressed sequences
   std::vector<std::string> headers;       //< Headers for the sequences (not sent to GPU)
   PageLockedString modifiers;             //< Modifiers for the sequences
-  cuda_unique_hptr<size_t> starts;        //< Starting indices of each sequence
+
+  ///Starting indices of each sequence (1 longer than sequence count so
+  ///a[i+1]-a[i] is always the length of a given sequence)
+  cuda_unique_hptr<size_t> starts;
   cuda_unique_hptr<size_t> ends;          //< Ending indices of each sequence
   cuda_unique_hptr<size_t> sizes;         //< Lengths of the sequences
 
@@ -38,5 +43,26 @@ struct PageLockedFastaPair {
 
 PageLockedFasta     page_lock(const FastaInput &inp);
 PageLockedFastaPair page_lock(const FastaPair &fp);
+
+///@brief Given a page-locked fasta, return the length of the longest string
+///
+///@param[in] pl_fasta A page-locked fasta
+///
+///@returns The length of the longest string
+size_t get_max_length(const PageLockedFasta &pl_fasta);
+
+///@brief Given a page-locked fasta, return the length of the longest string
+///
+///@param[in] vector_of_strings A page-locked fasta
+///@param[in] range Range of strings to consider
+///
+///@returns The length of the longest string
+size_t get_max_length(const PageLockedFasta &pl_fasta, const RangePair range);
+
+///Copies the sequences indicated by `rp` from the PageLockedFasta to the beginning of the device vector
+void copy_sequences_to_device_async(char *dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream);
+
+///Copies the sequences indicated by `rp` from the PageLockedFasta to the beginning of the device vector
+void copy_sequences_to_device_async(const cuda_unique_dptr<char> &dev_ptr, const PageLockedFasta &pl_fasta, const RangePair &rp, const cudaStream_t stream);
 
 }

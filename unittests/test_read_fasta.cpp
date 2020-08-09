@@ -1,6 +1,5 @@
+#include <albp/doctest.hpp>
 #include <albp/read_fasta.hpp>
-
-#include "doctest.h"
 
 #include <algorithm>
 #include <stdexcept>

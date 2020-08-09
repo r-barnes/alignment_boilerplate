@@ -1,6 +1,5 @@
+#include <albp/doctest.hpp>
 #include <albp/timer.hpp>
-
-#include "doctest.h"
 
 #include <chrono>
 #include <thread>
