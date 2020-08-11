@@ -10,13 +10,22 @@ int main(int argc, char **argv){
   std::string output_fasta_filename;
   size_t num;
   size_t len;
+  uint32_t seed = 0;
   app.add_option("filename", output_fasta_filename, "Output FASTA Filename")->required();
   app.add_option("num", num, "Number of sequences")->required();
   app.add_option("len", len, "Length of sequences")->required();
+  app.add_option("-s", seed, "PRNG seed. If unspecified or 0, a seed will be randomly generated.");
 
   CLI11_PARSE(app, argc, argv);
 
   std::mt19937 gen;
+  if(seed==0){
+    std::random_device rd;
+    gen.seed(rd());
+  } else {
+    gen.seed(seed);
+  }
+
   std::uniform_int_distribution<int> dist(0,3);
 
   std::ofstream fout(output_fasta_filename);
