@@ -18,7 +18,7 @@ int main(int argc, char **argv){
 
   CLI11_PARSE(app, argc, argv);
 
-  std::mt19937 gen;
+  std::mt19937_64 gen;
   if(seed==0){
     std::random_device rd;
     gen.seed(rd());
